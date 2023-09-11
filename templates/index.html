@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grid of Selectable Boxes</title>
+    <!-- Link to the external CSS file -->
+    <link rel="stylesheet" type="text/css" href="../static/styles/styles.css">
+</head>
+<body>
+        <!-- Center-aligned parent container -->
+    <div class="center-container">
+        <!-- Container for the grid of boxes -->
+        <div id="container">
+            <!-- Generate the grid of boxes with numbers -->
+            <script>
+                let selectedCount = 0; // Initialize the selected count
+                let selectedNumbers = [];
+                let totalNumbersToDraw = 2; // Default total numbers to draw
+
+                for (let i = 1; i <= 39; i++) {
+                    const box = document.createElement("div");
+                    box.className = "box";
+                    box.textContent = i;
+                    box.addEventListener("click", toggleSelection);
+                    document.getElementById("container").appendChild(box);
+
+                    // Add a line break after every 5 boxes
+                    if (i % 5 === 0) {
+                        document.getElementById("container").appendChild(document.createElement("br"));
+                    }
+                }
+
+                function toggleSelection() {
+                    // Toggle the 'selected' class on the clicked box
+                    this.classList.toggle("selected");
+
+                    // Update the selected count
+                    if (this.classList.contains("selected")) {
+                        selectedCount++;
+                        selectedNumbers.push(parseInt(this.textContent));
+                    } else {
+                        selectedCount--;
+                        selectedNumbers = selectedNumbers.filter(num => num !== parseInt(this.textContent));
+                    }
+
+                    // Update the counter element
+                    const counterElement = document.getElementById("counter");
+                    counterElement.textContent = `Total numbers selected: ${selectedCount}`;
+                }
+
+                function validateMinMax() {
+                    const minInput = document.getElementById("input-box-1");
+                    const maxInput = document.getElementById("input-box-2");
+
+                    const min = parseInt(minInput.value);
+                    const max = parseInt(maxInput.value);
+                    const validationMessage = document.getElementById("validation-message");
+
+                    // if (
+                    //     selectedNumbers.length > 0 &&
+                    //     !isNaN(min) &&
+                    //     !isNaN(max) &&
+                    //     min >= Math.min(...selectedNumbers) &&
+                    //     max <= Math.max(...selectedNumbers)
+                    // ) {
+                    //     validationMessage.textContent = "Valid input!";
+                    // } else {
+                    //     validationMessage.textContent = "Invalid input. Please enter values within the selected range.";
+                    // }
+                }
+
+                function validateAndSendData() {
+                    const totalNumbersDropdown = document.getElementById("number-dropdown");
+                    totalNumbersToDraw = parseInt(totalNumbersDropdown.value);
+
+                    if (selectedNumbers.length >= totalNumbersToDraw) {
+                        // Send the selected data to Flask using AJAX
+                        const xhr = new XMLHttpRequest();
+                        const url = "/combinations"; // Replace with your actual Flask endpoint URL
+                        const data = {
+                            selectedNumbers: selectedNumbers,
+                            totalNumbersToDraw: totalNumbersToDraw,
+                            min: parseInt(document.getElementById("input-box-1").value),
+                            max: parseInt(document.getElementById("input-box-2").value)
+                        };
+                        xhr.open("POST", url, true);
+                        xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                        xhr.send(JSON.stringify(data));
+
+                        // You can handle the response from Flask here if needed
+
+                    } else {
+                        alert("Total numbers selected must be greater than or equal to total numbers to draw.");
+                    }
+                }
+            </script>
+        </div>
+
+        <br>
+
+        <div id="counter">Total numbers selected: 0</div>
+
+        <br><br>
+
+        <label for="number-dropdown">Total numbers to draw: </label>
+        <select id="number-dropdown">
+            <option value="2">2</option>
+            <option value="6">6</option>
+        </select>
+
+        <br><br>
+
+        <label for="input-box-1">Minimum and maximum values for last number</label>
+        <input type="number" id="input-box-1" min="1">
+        <input type="number" id="input-box-2" min="1">
+        <div id="validation-message"></div>
+
+        <br><br>
+
+        <button type="submit" onclick="validateAndSendData()">Validate and Send Data</button>
+    </div>
+</body>
+</html>
